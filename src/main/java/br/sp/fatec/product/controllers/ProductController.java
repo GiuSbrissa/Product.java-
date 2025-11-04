@@ -1,7 +1,6 @@
 package br.sp.fatec.product.controllers;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,13 +8,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import br.sp.fatec.product.entities.Product;
+import br.sp.fatec.product.dtos.ProductRequest;
+import br.sp.fatec.product.dtos.ProductResponse;
 import br.sp.fatec.product.services.ProductService;
+import jakarta.validation.Valid;
+
 import org.springframework.web.bind.annotation.DeleteMapping;
 
 
@@ -27,11 +30,12 @@ public class ProductController {
     private ProductService service; 
 
     @GetMapping
-    public ResponseEntity<List<Product>> getProducts(){ 
+    public ResponseEntity<List<ProductResponse>> getProducts(){ 
         return ResponseEntity.ok(service.getProducts());
     }
-
-    public ResponseEntity<Product> getProductById(@PathVariable long id) {
+    
+    @GetMapping("{id}")
+    public ResponseEntity<ProductResponse> getProductById(@PathVariable long id) {
         return ResponseEntity.ok(service.getProductById(id));
     }
 
@@ -41,18 +45,25 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping //pega o produto que eu quero cadastrar e vai dentro do request (tem 2 partes - headers e body) 
-    public ResponseEntity<Product> saveProduct(@RequestBody Product product)
+   @PostMapping
+    public ResponseEntity<ProductResponse> saveProduct(@Valid @RequestBody ProductRequest request)
     {
-        Product newProduct = service.saveProduct(product);
+        ProductResponse response = service.saveProduct(request);
         
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
-                .buildAndExpand(newProduct.getId())
+                .buildAndExpand(response.id())
                 .toUri();
+
         return ResponseEntity.created(location)
-                             .body(newProduct);
+                             .body(response);
+    }
+    @PutMapping("{id}")
+    public ResponseEntity<Void> updateProduct( @PathVariable long id, @Valid @RequestBody ProductRequest product)
+    {
+        service.updateProduct(product, id);
+        return ResponseEntity.noContent().build();
     }
 
 }

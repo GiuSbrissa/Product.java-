@@ -8,6 +8,7 @@ import br.sp.fatec.product.entities.Product;
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
 
+
 } 
     
 
